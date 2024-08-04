@@ -2,76 +2,182 @@ import math
 import random
 import itertools
 import numpy as np
+import tkinter as tk
 
 
-class Cuidiao:
-    def __init__(self, red, cuidiao1_level, cuidiao2_level, cuidiao3_level, cuidiao4_level):
-        self.red = np.array([red, 0, 0, 0, 0])
-        self.cuidiao_level = np.array([cuidiao1_level, cuidiao2_level, cuidiao3_level, cuidiao4_level])
+class ConfigMenu(tk.Toplevel):
+    def __init__(self, game):
+        super().__init__()
+        self.title("Configuration Menu")
+        self.game = game
+
+        # 创建并放置标签和输入框
+        self.red_label = tk.Label(self, text="Red:")
+        self.red_label.place(x=100, y=100, width=20, height=20)
+        self.red_label.pack()
+        self.red_entry = tk.Entry(self)
+        self.red_entry.pack()
+
+        self.purple_label = tk.Label(self, text="Purple:")
+        self.purple_label.place(x=200, y=100, width=20, height=20)
+        self.purple_label.pack()
+        self.purple_entry = tk.Entry(self)
+        self.purple_entry.pack()
+
+        # ...为其他参数创建更多的标签和输入框...
+
+        # 创建并放置确认按钮
+        self.confirm_button = tk.Button(self, text="Confirm", command=self.confirm)
+        self.confirm_button.pack()
+
+    def confirm(self):
+        # 获取输入框中的值并更新game的参数
+        self.game.red = np.array([self.red_entry.get(), 0, 0, 0, 0])
+        self.game.purple = np.array([self.purple_entry.get(), 0, 0, 0])
+        # ...获取并更新其他参数...
+
+        # 关闭配置菜单
+        self.destroy()
+
+
+class Game:
+    def __init__(self, red, purple, blue, yellow, root,
+                 cuidiaoI_level=3, cuidiaoII_level=3, cuidiaoIII_level=3, cuidiaoIV_level=3,
+                 lvchunI_level=3, lvchunII_level=3, lvchunIII_level=3,
+                 zharouI_level=3, zharouII_level=3, zharouIII_level=3,
+                 luojingI_level=3, luojingII_level=3, luojingIII_level=3,
+                 table=2):
+        self.red = np.array([red, 0, 0, 0, 0])自己的红色值为一个numpy数组，其中包含红色分量（red）、透明度（0）、蓝色分量（0）、绿色分量（0）和alpha值（0）。
+        self.purple = np.array([purple, 0, 0, 0])
+        self.blue = np.array([blue, 0, 0, 0])
+        self.yellow = yellow
+
+        self.red_score = np.array([1, 2, 10, 35, 85])
+        self.purple_score = np.array([1, 2, 22, 105])
+        self.blue_score = np.array([1, 5, 50, 500])
+        self.yellow_score = 1
+
+        self.cuidiao_level = np.array([cuidiaoI_level, cuidiaoII_level, cuidiaoIII_level, cuidiaoIV_level])
+        self.lvchun_level = np.array([lvchunI_level, lvchunII_level, lvchunIII_level])
+        self.zharou_level = np.array([zharouI_level, zharouII_level, zharouIII_level])
+        self.luojing_level = np.array([luojingI_level, luojingII_level, luojingIII_level])
+
+        self.cuidiao_advantage = np.array([1, 1, 1, 1])
+        self.lvchun_advantage = np.array([1, 1, 1])
+        self.zharou_advantage = np.array([1, 1, 1])
+        self.luojing_advantage = np.array([1, 1, 1])
+
+        # 标志定义
+        self.cuidiao_flag = 0
+        self.zharou_flag = 0
+
         self.occupation = 0
-        self.advantage = np.array([0, 0, 0])
+        self.score = 0
+        self.table = table
 
-    def cuidiao1(self):
+        self.operation_list = []
+
+        self.root = root
+        self.root.title('Game')
+        self.create_widgets()
+        self.level_label = ["初级", "中级", "高级"]
+
+    def open_config_menu(self):
+        ConfigMenu(self)
+
+    def create_widgets(self):
+        # 创建并放置需要的组件
+        # 这里只是一个示例，您需要根据实际需要添加和配置组件
+        self.label = tk.Label(self.root, text="PeiPei's Classroom!")
+        self.label.pack()
+        self.start_button = tk.Button(self.root, text="Start", command=self.start_game)
+        self.start_button.pack()
+        self.config_button = tk.Button(self.root, text="Config", command=self.open_config_menu)
+        self.config_button.pack()
+
+
+    def start_game(self,):
+        # 在这里添加开始游戏���代码
+        self.label.destroy()
+        self.start_button.destroy()
+
+        self.table_label = tk.Label(self.root, text=f"工作台数量: {self.table}")
+        self.table_label.pack()
+
+        self.occupation_label = tk.Label(self.root, text=f"已占用工作台数量: {self.occupation}")
+        self.occupation_label.pack()
+
+        self.red_label = tk.Label(self.root, text=f"火焰伊纳: {self.red[0]}")
+        self.red_label.pack()
+
+        self.blue_label = tk.Label(self.root, text=f"草伊纳: {self.blue[0]}")
+        self.blue_label.pack()
+
+        self.purple_label = tk.Label(self.root, text=f"天空伊纳: {self.purple[0]}")
+        self.purple_label.pack()
+
+        self.yellow_label = tk.Label(self.root, text=f"沙伊纳: {self.yellow}")
+        self.yellow_label.pack()
+
+        self.cuidiaoI_set = tk.Button(self.root, text=self.level_label[self.cuidiao_level[0]-1]+"淬雕I", command=self.cuidiaoI_and_destroy)
+        self.cuidiaoI_set.pack()
+
+    def cuidiaoI_and_destroy(self):
+        self.cuidiaoI()
+        self.cuidiaoI_set.destroy()
+
+    def cuidiaoI(self):
         if self.cuidiao_level[0] == 1:
-            self.occupation = 1
+            self.occupation += 1
             self.red[1] = self.red[0]
         elif self.cuidiao_level[0] == 2:
-            self.occupation += 0
             self.red[1] = self.red[0]
             self.advantage[0] = 100
         elif self.cuidiao_level[0] == 3:
-            self.occupation += 0
-            self.red[1] = 2*self.red[0]
-            self.advantage[0] = 100
+            self.red[1] = 2 * self.red[0]
+            self.cuidiao_advantage[0] = 100
         self.red[0] = 0
-        return self.red, self.occupation
+        self.red_label.config(text=f"火焰伊纳I: {self.red[1]}")
+        self.occupation_label.config(text="已占用工作台数量: "+str(self.occupation))
+        return self
 
-    def cuidiao2(self):
+    def cuidiaoII(self):
         if self.cuidiao_level[1] == 1:
             self.occupation += 1
             self.red[2] = self.red[1]
         elif self.cuidiao_level[1] == 2:
             self.occupation += 1
-            self.red[2] = 2*self.red[1]
+            self.red[2] = 2 * self.red[1]
         elif self.cuidiao_level[1] == 3:
-            self.red[2] = 2*self.red[1]
-            self.advantage[1] = 100
+            self.red[2] = 2 * self.red[1]
+            self.cuidiao_advantage[1] = 90
         self.red[1] = 0
-        return self.red, self.occupation
+        return self
 
-    def cuidiao3(self):
+    def cuidiaoIII(self):
         if self.cuidiao_level[2] == 1:
             self.occupation += 1
             self.red[3] = self.red[2]
         elif self.cuidiao_level[2] == 2:
             self.occupation += 1
-            self.red[3] = math.ceil(self.red[2]*2.4)
+            self.red[3] = math.ceil(self.red[2] * 2.4)
         elif self.cuidiao_level[2] == 3:
-            self.red[3] = math.ceil(self.red[2]*2.4)
-            self.advantage[2] = 100
+            self.red[3] = math.ceil(self.red[2] * 2.4)
+            self.cuidiao_advantage[2] = 80
         self.red[2] = 0
-        return self.red, self.occupation
+        return self
 
-    def cuidiao4(self):
+    def cuidiaoIV(self):
         self.occupation += 1
         self.red[4] = self.red[3]
         self.red[3] = 0
-        cuidiao4_flag = 0
         if self.cuidiao_level[3] == 2:
-            cuidiao4_flag = 2
+            self.cuidiao_flag = 2
         elif self.cuidiao_level[3] == 3:
-            cuidiao4_flag = 3
-        return self.red, self.occupation, cuidiao4_flag
+            self.cuidiao_flag = 3
+        return self
 
-
-class Lvchun:
-    def __init__(self, blue, lvchun1_level, lvchun2_level, lvchun3_level):
-        self.blue = np.array([blue, 0, 0, 0])
-        self.yellow = 0
-        self.lvchun_level = np.array([lvchun1_level, lvchun2_level, lvchun3_level])
-        self.occupation = 0
-
-    def lvchun1(self):
+    def lvchunI(self):
         self.occupation += 1
         if self.lvchun_level[0] == 1:
             self.blue[1] = math.ceil(self.blue[0]*0.5)
@@ -83,9 +189,9 @@ class Lvchun:
             self.blue[1] = self.blue[0]
             self.yellow += self.blue[0]
         self.blue[0] = 0
-        return self.blue, self.yellow, self.occupation
+        return self
 
-    def lvchun2(self):
+    def lvchunII(self):
         self.occupation += 1
         if self.lvchun_level[1] == 1:
             self.blue[2] = math.ceil(self.blue[1]*0.4)
@@ -97,9 +203,9 @@ class Lvchun:
             self.blue[2] = math.ceil(self.blue[1]*0.8)
             self.yellow += math.floor(self.blue[1]*0.2)+2*self.blue[2]
         self.blue[1] = 0
-        return self.blue, self.yellow, self.occupation
+        return self
 
-    def lvchun3(self):
+    def lvchunIII(self):
         self.occupation += 1
         if self.lvchun_level[2] == 1:
             self.blue[3] = math.ceil(self.blue[2]*0.3),
@@ -111,59 +217,9 @@ class Lvchun:
             self.blue[3] = math.ceil(self.blue[2]*0.7)
             self.yellow += math.floor(self.blue[2]*0.3)+2*self.blue[3]
         self.blue[2] = 0
-        return self.blue, self.yellow, self.occupation
+        return self
 
-
-class Luojing:
-    def __init__(self, yellow, luojing1_level, luojing2_level, luojing3_level):
-        self.yellow = yellow
-        self.luojing_level = np.array([luojing1_level, luojing2_level, luojing3_level])
-        self.occupation = 0
-
-    def luojing1(self):
-        self.occupation += 1
-        if self.luojing_level[0] == 1:
-            self.yellow = self.yellow*2
-        elif self.luojing_level[0] == 2:
-            self.yellow = self.yellow*3
-        elif self.luojing_level[0] == 3:
-            self.yellow = self.yellow*5
-        return self.yellow, self.occupation
-
-    def luojing2(self):
-        self.occupation += 1
-        if self.luojing_level[1] == 1:
-            self.yellow = self.yellow*3
-        elif self.luojing_level[1] == 2:
-            self.yellow = self.yellow*5
-        elif self.luojing_level[1] == 3:
-            self.yellow = self.yellow*8
-        return self.yellow, self.occupation
-
-    def luojing3(self):
-        self.occupation += 1
-        yellow_score_add = 0
-        if self.luojing_level[2] == 1:
-            self.yellow = self.yellow*5
-        elif self.luojing_level[2] == 2:
-            self.yellow = self.yellow*9
-        elif self.luojing_level[2] == 3:
-            self.yellow = self.yellow*9
-            yellow_score_add = 1
-        return self.yellow, self.occupation, yellow_score_add
-
-
-class Zharou:
-    def __init__(self, purple1, yellow, blue, red, zharou1_level, zharou2_level, zharou3_level):
-        self.purple = np.array([purple1, 0, 0, 0])
-        self.yellow = yellow
-        self.blueI = blue[0]
-        self.redII = red[1]
-        self.zharou_level = np.array([zharou1_level, zharou2_level, zharou3_level])
-        self.occupation = 0
-        self.purple_score_add = 0
-
-    def zharou1(self):
+    def zharouI(self):
         self.occupation += 1
         if self.zharou_level[0] == 1:
             if self.purple[0] >= self.yellow:
@@ -176,172 +232,134 @@ class Zharou:
                 self.purple[0] = 0
         elif self.zharou_level[0] == 2:
             if self.purple1 != 0 and self.yellow != 0:
-                self.purple[1] = math.ceil((self.purple[0]+self.yellow)*0.5)
+                self.purple[1] = math.ceil((self.purple[0] + self.yellow) * 0.5)
                 self.purple[0] = 0
                 self.yellow = 0
         elif self.zharou_level[0] == 3:
-            self.purple_score_add += 5
+            self.purple_score += 5
             if self.purple[0] != 0 and self.yellow != 0:
-                self.purple[1] = math.ceil((self.purple[0]+self.yellow)*0.5)
+                self.purple[1] = math.ceil((self.purple[0] + self.yellow) * 0.5)
                 self.purple[0] = 0
                 self.yellow = 0
-        return self.purple, self.occupation, self.purple_score_add
+        return self
 
-    def zharou2(self):
+    def zharouII(self):
         self.occupation += 1
         if self.zharou_level[1] == 1:
             if self.purple[1] >= self.blueI:
                 self.purple[2] = self.blueI
                 self.purple[1] = self.purple[1] - self.blueI
-                self.blueI = 0
+                self.blue[0] = 0
             else:
                 self.purple[2] = self.purple[1]
-                self.blueI = self.blueI - self.purple[1]
+                self.blue[0] = self.blue[0] - self.purple[1]
                 self.purple[1] = 0
         elif self.zharou_level[1] == 2:
-            self.purple_score_add = self.purple_score_add+15
+            self.purple_score += 15
             if self.purple[1] >= self.blueI:
                 self.purple[2] = self.blueI
                 self.purple[1] = self.purple[1] - self.blueI
-                self.blueI = 0
+                self.blue[0] = 0
             else:
                 self.purple[2] = self.purple[1]
-                self.blueI = self.blueI - self.purple[1]
+                self.blue[0] = self.blue[0] - self.purple[1]
                 self.purple[1] = 0
         elif self.zharou_level[1] == 3:
-            self.purple_score_add = self.purple_score_add+15
+            self.purple_score += 15
             if self.purple[1] != 0 and self.yellow != 0:
-                self.purple[2] = math.ceil((self.purple[1]+self.yellow)*0.5)
+                self.purple[2] = math.ceil((self.purple[1] + self.yellow) * 0.5)
                 self.purple[1] = 0
                 self.yellow = 0
-        return self.purple, self.occupation, self.purple_score_add
+        return self
 
-    def zharou3(self):
+    def zharouIII(self):
         self.occupation += 1
-        zharou_flag = 0
         if self.zharou_level[2] == 1:
-            if self.purple[2] >= self.redII:
-                self.purple[3] = self.redII
-                self.purple[2] = self.purple[2] - self.redII
-                self.redII = 0
+            if self.purple[2] >= self.red[3]:
+                self.purple[3] = self.red[3]
+                self.purple[2] = self.purple[2] - self.red[3]
+                self.red[3] = 0
             else:
                 self.purple[3] = self.purple[2]
-                self.redII = self.redII - self.purple[2]
+                self.red[3] = self.red[3] - self.purple[2]
                 self.purple[2] = 0
         elif self.zharou_level[2] == 2:
-            if self.purple[2] != 0 and self.yellow != 0:
-                self.purple[3] = math.ceil((self.purple[2]+self.yellow)*0.5)
+            if self.purple[2] != 0 and self.red[3] != 0:
+                self.purple[3] = math.ceil((self.purple[2]+self.red[3])*0.5)
                 self.purple[2] = 0
-                self.yellow = 0
+                self.red[3] = 0
         elif self.zharou_level[2] == 3:
-            if self.purple[2] != 0 and self.yellow != 0:
-                self.purple[3] = math.ceil((self.purple[2]+self.yellow)*0.5)
+            if self.purple[2] != 0 and self.red[3] != 0:
+                self.purple[3] = math.ceil((self.purple[2]+self.red[3])*0.5)
                 self.purple[2] = 0
-                self.yellow = 0
-                zharou_flag = 1
-        return self.purple, self.occupation, zharou_flag
+                self.red[3] = 0
+                self.zharou_flag = 1
+        return self
 
+    def luojingI(self):
+        self.occupation += 1
+        if self.luojing_level[0] == 1:
+            self.yellow = self.yellow*2
+        elif self.luojing_level[0] == 2:
+            self.yellow = self.yellow*3
+        elif   埃利夫 self.luojing_level[0] == 3:   导入数学
+            self.yellow = self.yellow*5   进口随机
+        return   返回 self   出现进口itertools
+   导入numpy为np
+    def luojingII(self):
+        self.occupation   占领 += 1
+        if   如果 self.luojing_level[1] == 1:
+            self.yellow = self.yellow*3
+        elif   埃利夫 self.luojing_level[1] == 2:
+            self.yellow = self.yellow*5
+        elif   埃利夫 self.luojing_level[1] == 3:
+            self.yellow = self.yellow*8
+        return   返回 self
 
-class Game:
-    def __init__(self, red, purple, blue, yellow, table=2):
-        self.red = np.array([red, 0, 0, 0, 0])
-        self.purple = np.array([purple, 0, 0, 0])
-        self.blue = np.array([blue, 0, 0, 0])
+    def luojingIII(self):
+        self.occupation   占领 += 1
+        if   如果 self.luojing_level[2] == 1:
+            self.yellow = self.yellow*5
+        elif   埃利夫 self.luojing_level[2] == 2:
+            self.yellow = self.yellow*9
+        elif   埃利夫 self.luojing_level[2] == 3:
+            self.yellow = self.yellow*9
+            self.yellow_score += 1
+        return   返回 self
 
-        self.red_score = np.array([1, 2, 10, 35, 85])
-        self.purple_score = np.array([1, 2, 22, 105])
-        self.blue_score = np.array([1, 5, 50, 500])
-
-        self.yellow = yellow
-        self.yellow_score = 1
-        # 标志定义
-        self.zharou_flag = 0
-        self.cuidiao_flag = 0
-
-        self.total_occupation = 0
-        self.score = 0
-        self.table = table
-
-        self.operation_list = []
 
     def calculate_score(self):
-        self.score += sum(self.red_score*self.red)
-        self.score += sum(self.purple_score*self.purple)
-        self.score += self.yellow_score*self.yellow
-        self.score += sum(self.blue_score*self.blue)
-        if self.cuidiao_flag:
-            if self.cuidiao_flag == 2:
-                self.score += 1500*(self.table-self.total_occupation)
-            elif self.cuidiao_flag == 3:
-                self.score += 5000*(self.table-self.total_occupation)
-        if (self.zharou_flag == 1 and all(
-                value == 0 for array in [self.red, self.blue, self.yellow] for value in array)
-                and all(value == 0 for value in self.purple[:3])):
-            self.score += self.purple_score[3]*100
+        self.score   分数 += sum(self.red_score*self.red   红色的)
+        self.score   分数 += sum(self.purple_score*self.purple)
+        self.score   分数 += self.yellow_score*self.yellow
+        self.score   分数 += sum(self.blue_score*self.blue)
+        if   如果 self.table   表格-self.occupation   占领 < 0:
+            self.score   分数 = -1
+        if   如果 self.cuidiao_flag:
+            if   如果 self.cuidiao_flag == 2:
+                self.score   分数 += 1500*(self.table   表格   表格-self.occupation   占领   占领)
+            elif   埃利夫 self.cuidiao_flag == 3:
+                self.score   分数 += 5000*(self.table   表格-self.occupation   占领)
+        if   如果 (self.zharou_flag == 1 and   和 all(
+                value == 0 for array in   在……里面 [self.red   红色的, self.blue, self.yellow] for value in   在……里面 array)
+                and   和 all(value == 0 for value in   在……里面 self.purple[:3])):
+            self.score   分数 += self.purple_score[3]*100
 
     def game(self):
         # 所有可能的操作序列
-        operations = ['cuidiao1', 'cuidiao2', 'cuidiao3', 'cuidiao4',
-                      'lvchun1', 'lvchun2', 'lvchun3',
-                      'luojing1', 'luojing2', 'luojing3',
-                      'zharou1', 'zharou2', 'zharou3']
+        operations = ['cuidiaoI', 'cuidiaoII', 'cuidiaoIII', 'cuidiaoIV',
+                      'lvchunI', 'lvchunII', 'lvchunIII',
+                      'luojingI', 'luojingII', 'luojingIII',
+                      'zharouI', 'zharouII', 'zharouIII']
         max_score = 0
         best_operations = []
 
-        # 遍历所有操作序列的排列组合
-        for ops in itertools.permutations(operations, self.table+3):
-            red = self.red
-            purple = self.purple
-            blue = self.blue
-            yellow = self.yellow
-
-            cuidiao = Cuidiao(red[0], 3, 3, 3, 3)
-            lvchun = Lvchun(blue[0], 3, 3, 3)
-            luojing = Luojing(yellow, 3, 3, 3)
-            zharou = Zharou(purple[0], yellow, blue, red, 3, 3, 3)
-
-            for op in ops:
-                if self.total_occupation >= self.table:
-                    break
-                if op.startswith('cuidiao'):
-                    cuidiao_method = getattr(cuidiao, op)
-                    result = cuidiao_method()
-                    self.red = result[0]
-                    self.total_occupation += result[1]
-                    if op == 'cuidiao4':
-                        self.cuidiao_flag = result[2]
-                elif op.startswith('lvchun'):
-                    lvchun_method = getattr(lvchun, op)
-                    result = lvchun_method()
-                    self.blue = result[0]
-                    self.yellow = result[1]
-                    self.total_occupation += result[2]
-                elif op.startswith('luojing'):
-                    luojing_method = getattr(luojing, op)
-                    result = luojing_method()
-                    self.yellow = result[0]
-                    self.total_occupation += result[1]
-                elif op.startswith('zharou'):
-                    zharou_method = getattr(zharou, op)
-                    result = zharou_method()
-                    self.purple = result[0]
-                    self.total_occupation += result[1]
-                    if op == 'zharou3':
-                        self.zharou_flag = result[2]
-
-            self.calculate_score()
-            if self.score > max_score:
-                max_score = self.score
-                best_operations = ops
-
-        return max_score, best_operations
-
-    # 游戏执行示例
-game = Game(100, 50, 30, 20, table=6)
-final_score, operations = game.game()
-print(f"最终得分: {final_score}")
-print(f"最佳操作序列: {operations}")
 
 
-
-
+# 游戏执行示例
+root = tk.Tk()
+game = Game(70, 10, 10, 10, root,cuidiaoI_level=1, table=6)
+root.mainloop()
+print(game.score   分数)
+print(game.table   表格-game.occupation   占领)
+print(game.red   红色的)
